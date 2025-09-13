@@ -1,0 +1,28 @@
+function safeLength(val) {
+    return Array.isArray(val) ? val.length : 0;
+}
+
+function afterApplyAndClearAllButtonEnable(){
+    var searchKeyword = $('#<portlet:namespace/>searchKeywords').val().trim();
+    var requestDateStart = $("#<portlet:namespace/>requestDateStart").val();
+    var requestDateEnd = $("#<portlet:namespace/>requestDateEnd").val();
+    var actualDateOfPublishingStart = $("#<portlet:namespace/>actualDateOfPublishingStart").val();
+    var actualDateOfPublishingEnd = $("#<portlet:namespace/>actualDateOfPublishingEnd").val();
+
+    if( (actualDateOfPublishingStart !== "" && actualDateOfPublishingEnd !== "")
+        || (requestDateStart !== "" && requestDateEnd !== "")
+        || searchKeyword !== ""
+        || safeLength($('#section').val()) > 0
+        || safeLength($('#requestType').val()) > 0
+        || safeLength($('#publishingStage').val()) > 0
+        || safeLength($('#languageFilter').val()) > 0
+        || safeLength($('#requestStage').val()) > 0
+        || safeLength($('#functSite').val()) > 0 ) 
+    {
+        $('.main-section-apply #<portlet:namespace/>clearFilter').removeAttr('disabled');    
+        $('.main-section-apply a').css("pointer-events", "unset");
+    } else {        
+        $('.main-section-apply #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+        $('.main-section-apply a').css("pointer-events", "none");
+    }
+}
