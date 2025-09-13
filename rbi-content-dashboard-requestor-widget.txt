@@ -1,0 +1,2268 @@
+<%@page import="java.util.List"%>
+<%@page import="javax.portlet.PortletSession"%>
+<%@page import="java.util.Map"%>
+<%@page import="java.util.Map.Entry"%>
+<%@page import="java.util.LinkedHashMap"%>
+<%@page import="java.util.stream.Collectors"%>
+<%@page import="java.util.Comparator"%>
+<%@page import="com.liferay.asset.kernel.model.AssetCategory"%>
+<%@page import="java.util.Arrays"%>
+<%@page import="com.liferay.petra.string.StringPool"%>
+<%@ include file="init.jsp"%>
+<%@ page isELIgnored="false"%>
+
+<portlet:resourceURL var="downloadURL" id="/downloadExcel" />
+
+<script type="text/javascript"
+	src="<%=request.getContextPath()%>/js/bootstrap.min.js"></script>
+
+<script type="text/javascript"
+	src="<%=request.getContextPath()%>/js/bootstrap-datepicker.min.js"></script>
+<script type="text/javascript"
+	src="<%=request.getContextPath()%>/js/bootstrap-datetimepicker.min.js"></script>
+
+
+<link rel="stylesheet"
+	href="<%=request.getContextPath()%>/css/bootstrap-multiselect.css"
+	type="text/css" />
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/tags.css"
+	type="text/css">
+<link rel="stylesheet"
+	href="<%=request.getContextPath()%>/css/all.min.css" type="text/css" />
+<link rel="stylesheet"
+	href="<%=request.getContextPath()%>/css/bootstrap-datepicker.min.css"
+	type="text/css" />
+<link rel="stylesheet"
+	href="<%=request.getContextPath()%>/css/bootstrap-datetimepicker.min.css"
+	type="text/css" />
+<link rel="stylesheet"
+	href="<%=request.getContextPath()%>/css/font-awesome.min.css"
+	type="text/css" />
+
+<%
+ logoutURL = (String) renderRequest.getAttribute("logoutURL");
+%>
+
+<link rel="stylesheet" href="/documents/87730/17367444/admin-dashboard.css?t=<%=resRandom %>" type="text/css"/>
+<script type="text/javascript" src="/documents/87730/17367444/bootstrap-multiselect.js?t=<%=resRandom %>"></script>
+<%
+	
+	List<ContentRequestHistoryData> contentRequestHistoryDataList = (List<ContentRequestHistoryData>) request
+			.getAttribute("contentRequestHistoryDataList");
+	JsonUtil jsonUtil = (JsonUtil) request.getAttribute("jsonUtil");
+	List<AssetCategory> sectionAsstCategories = (List<AssetCategory>) request
+			.getAttribute("sectionAsstCategories");
+	List<String> languages = (List<String>) request.getAttribute("languages");
+	List<AssetCategory> functSiteAsstCategories = (List<AssetCategory>) request
+			.getAttribute("functSiteAsstCategories");
+
+	Comparator<AssetCategory> comparator = Comparator.comparing(category -> category.getName().toLowerCase());
+
+	sectionAsstCategories = sectionAsstCategories.stream().sorted(comparator).collect(Collectors.toList());
+
+	functSiteAsstCategories = functSiteAsstCategories.stream().sorted(comparator).collect(Collectors.toList());
+
+	languages = languages.stream().sorted().collect(Collectors.toList());
+    String additionalColumnFilter = (String) renderRequest.getPortletSession().getAttribute("additionalColumnFilter",PortletSession.PORTLET_SCOPE);
+
+	String languageFilterHidden = (String) renderRequest.getPortletSession()
+			.getAttribute("languageFilterHidden", PortletSession.PORTLET_SCOPE);
+	String requestStageHidden = (String) renderRequest.getPortletSession().getAttribute("requestStageHidden",
+			PortletSession.PORTLET_SCOPE);
+	String publishingStageHidden = (String) renderRequest.getPortletSession()
+			.getAttribute("publishingStageHidden", PortletSession.PORTLET_SCOPE);
+	String requestTypeHidden = (String) renderRequest.getPortletSession().getAttribute("requestTypeHidden",
+			PortletSession.PORTLET_SCOPE);
+	String sectionHidden = (String) renderRequest.getPortletSession().getAttribute("sectionHidden",
+			PortletSession.PORTLET_SCOPE);
+	String functSiteHidden = (String) renderRequest.getPortletSession().getAttribute("functSiteHidden",
+			PortletSession.PORTLET_SCOPE);
+	String requestDateStart = (String) renderRequest.getPortletSession().getAttribute("requestDateStart",
+			PortletSession.PORTLET_SCOPE);
+	String requestDateEnd = (String) renderRequest.getPortletSession().getAttribute("requestDateEnd",
+			PortletSession.PORTLET_SCOPE);
+	String actualDateOfPublishingStart = (String) renderRequest.getPortletSession()
+			.getAttribute("actualDateOfPublishingStart", PortletSession.PORTLET_SCOPE);
+	String actualDateOfPublishingEnd = (String) renderRequest.getPortletSession()
+			.getAttribute("actualDateOfPublishingEnd", PortletSession.PORTLET_SCOPE);
+	
+	String departmentFilter = (String) renderRequest.getPortletSession()
+			.getAttribute("departmentFilter", PortletSession.PORTLET_SCOPE);
+	String searchKeywords = (String) renderRequest.getPortletSession()
+			.getAttribute("searchKeywords", PortletSession.PORTLET_SCOPE);
+
+	String[] languageFilter = languageFilterHidden.split(StringPool.COMMA);
+	String[] requestStage = requestStageHidden.split(StringPool.COMMA);
+	String[] publishingStage = publishingStageHidden.split(StringPool.COMMA);
+	String[] requestType = requestTypeHidden.split(StringPool.COMMA);
+	String[] section = sectionHidden.split(StringPool.COMMA);
+	String[] functSiteFilter = functSiteHidden.split(StringPool.COMMA);
+	String[] additionalColumn = additionalColumnFilter.split(StringPool.COMMA);
+
+
+	/* List<AssetCategory> deptAsstCategories = (List<AssetCategory>) request.getAttribute("deptAsstCategories"); */
+%>
+<div class="GoToTheTopWrap gotoTop-matomo d-none" data-toggle="rbi-tooltip" data-placement="auto" data-title="Back to Top" data-original-title="Back to Top">
+	<img src="<%=request.getContextPath() %>/images/arrow-up.svg" class="gotoTop-matomo" id="gotoTop-matomo" role="button" alt="Back to Top">
+</div>
+<script type="text/javascript">
+var contentRequestHistoryDataObject = <%=request.getAttribute("contentRequestHistoryDataJson")%>;
+
+$(window).scroll(function () {
+	// $('[data-toggle="rbi-tooltip"]').tooltip('hide'); //tooltip hide when page is scrolled
+	var topofBrowser = ($(window).scrollTop() || $("body").scrollTop());
+	if (topofBrowser > 400) {
+		$(".GoToTheTopWrap").removeClass("d-none");
+	}
+	else {
+		$(".GoToTheTopWrap").addClass("d-none");
+	}
+});
+
+$(".GoToTheTopWrap").click(function () {
+        $("html, body").animate({ scrollTop: 0 }, "slow");
+        $(".rbi-secondary-Nav ul li a").removeClass("active");
+});
+
+function createRow(item, previewRequestURL, viewReuestFormURL) {
+	
+	const parsedUrl = new URL(previewRequestURL);
+	const urlParams = new URLSearchParams(parsedUrl.search);
+	let transformedItem;
+    var tbody = document.getElementById("tbodyId");
+
+    var requestDateTimeAdded = {};
+    var requestIdAdded = {};
+    var viewRequestAdded = {};
+    var requestTypeAdded = [];
+    var requestTitleAdded = [];
+    var requestDescriptionAdded = [];
+    var departmentApproverAdded = [];
+    var requestWFAssigneeAdded = [];
+    var requestWFStageAdded = [];
+    var publishingWFIdAdded = {};
+    var websitePageURLAdded = {};
+    var requestIdWithFunctionwiseSite = [];
+    var requestIdWithSection = [];
+    var requestIdWithAdditionalWebsitePageURL = [];
+    var requestIdWithPublishingWFId = [];
+    var requestIdWithwebsitePageURLAdded = [];
+    let result = []; 
+	
+	if(item.contentPublishHistoryDataList && item.contentPublishHistoryDataList.length > 0) {
+        for (let history of item.contentPublishHistoryDataList) {
+        	if(history.publishHistoryLanguageDataList && history.publishHistoryLanguageDataList.length > 0) {
+	            for (let languageData of history.publishHistoryLanguageDataList) {
+	            	var articleId;
+	            	if(history.articleId == 0){
+	            		articleId="-";
+	            	}
+	            	else{
+	            		articleId=history.articleId;
+	            	}
+	          	  let transformedItem = {
+	            			"Request Date/Time":item.requestDateTime,
+	        				"Request Id":item.requestId,
+	        				"View Request":"View the request form",
+	        				"Request Type":item.requestType,
+	        				"Request Title": item.requestTitle,
+	        				"Request Description":item.requestDescription,
+	        				"Department Approver":item.departmentApprover,
+	        				"Request WF Stage": item.requestWFStage,
+	        				"Request WF Assignee":item.requestWFAssignee,
+	        				"Publishing WF Id":articleId,
+	        				"Website/Page URL":item.websitePageURL,
+	        				"Functionwise Site":item.functionwiseSite,
+	        				"Section":item.sections,
+	        				"Additional Website/Page URL":item.additionalWebsitePageURL,
+	        				"Language":languageData.language,
+	        				"Publishing WF Stages":languageData.publishingWFStages,
+	        				"Proposed Publishing Date/Time":item.proposedPublishingDateTime,
+	        				"Actual Date/Time of Publishing":languageData.actualPublishingDateTime,
+	        				"Actual Date/Time of completion":languageData.actualCompletionDateTime,
+//	        				"Actual Date/Time of completion":"-",
+// 	        				"Send Reminder (checkbox)": "Test"		
+	            	  };
+                  result.push(transformedItem);
+
+	            }
+        	}
+        }
+	}
+	
+              	console.log("result - ",result);
+
+	if(tbody !=  null) {
+    result.forEach(function (transformedItem) {
+        var row = tbody.insertRow();
+
+	if (!requestDateTimeAdded[transformedItem["Request Date/Time"]]) {
+	    var requestDateTimeCell = document.createElement("td");
+	    requestDateTimeCell.textContent = transformedItem["Request Date/Time"];
+		requestDateTimeCell.style.overflow = 'hidden';
+	    requestDateTimeCell.rowSpan = result.filter(function (i) {
+	      return i["Request Date/Time"] === transformedItem["Request Date/Time"];
+	    }).length;
+	    row.appendChild(requestDateTimeCell);
+	    requestDateTimeAdded[transformedItem["Request Date/Time"]] = true;
+	}
+
+	if (!requestIdAdded[transformedItem["Request Id"]]) {
+	    var requestIdCell = document.createElement("td");
+	    
+		/* let createAnchor = document.createElement('a');
+		createAnchor.setAttribute('href', previewRequestURL); */
+		requestIdCell.textContent = transformedItem["Request Id"];
+		requestIdCell.style.overflow = 'hidden';
+		/* requestIdCell.appendChild(createAnchor); */
+		
+	    requestIdCell.rowSpan = result.filter(function (i) {
+	      return i["Request Id"] === transformedItem["Request Id"];
+	    }).length;
+	    row.appendChild(requestIdCell);
+	    requestIdAdded[transformedItem["Request Id"]] = true;
+	}
+
+	if (!viewRequestAdded[transformedItem["View Request"]]) {
+	    var viewRequestCell = document.createElement("td");
+	    
+		let createAnchor = document.createElement('a');
+		createAnchor.setAttribute('href', viewReuestFormURL);
+		createAnchor.textContent = transformedItem["View Request"];
+		viewRequestCell.style.overflow = 'hidden';
+		viewRequestCell.appendChild(createAnchor);
+		
+		viewRequestCell.rowSpan = result.filter(function (i) {
+	      return i["View Request"] === transformedItem["View Request"];
+	    }).length;
+	    row.appendChild(viewRequestCell);
+	    viewRequestAdded[transformedItem["View Request"]] = true;
+	}
+	
+	if (!requestTypeAdded.find(function(el){
+		return el["Request Type"] == transformedItem["Request Type"] &&  el["Request Id"] == transformedItem["Request Id"]
+	})) {
+		var requestTypeCell = document.createElement("td");
+		requestTypeCell.setAttribute("class","request-type-td d-none");
+		requestTypeCell.textContent = transformedItem["Request Type"].substring(0,50);
+		requestTypeCell.style.overflow = 'hidden';
+		requestTypeCell.rowSpan = result.filter(function (i) {
+		return i["Request Id"] == transformedItem["Request Id"] && i["Request Type"] === transformedItem["Request Type"];
+		}).length;
+		row.appendChild(requestTypeCell);
+		requestTypeAdded.push({"Request Id" : transformedItem["Request Id"] , "Request Type" : transformedItem["Request Type"]})
+	}
+
+	if (!requestTitleAdded.find(function(el){
+	    return el["Request Title"] == transformedItem["Request Title"] &&  el["Request Id"] == transformedItem["Request Id"]
+	  })) {
+	    var requestTitleCell = document.createElement("td");
+	    if(transformedItem["Request Title"].length > 50) {
+	    	requestTitleCell.textContent = transformedItem["Request Title"].substring(0,50)+"...";
+		} else {
+			requestTitleCell.textContent = transformedItem["Request Title"];
+		}
+		if(transformedItem["Request Title"].length > 250) {
+			requestTitleCell.setAttribute("title",transformedItem["Request Title"].substring(0,250)+"...");
+		} else {
+			requestTitleCell.setAttribute("title",transformedItem["Request Title"]);
+		}
+		requestTitleCell.style.overflow = 'hidden';
+	    requestTitleCell.rowSpan = result.filter(function (i) {
+	      return i["Request Id"] == transformedItem["Request Id"] && i["Request Title"] === transformedItem["Request Title"];
+	    }).length;
+	    row.appendChild(requestTitleCell);
+	    requestTitleAdded.push({"Request Id" : transformedItem["Request Id"] , "Request Title" : transformedItem["Request Title"]})
+	  }
+		
+	if (!requestDescriptionAdded.find(function(el){
+		return el["Request Description"] == transformedItem["Request Description"] &&  el["Request Id"] == transformedItem["Request Id"]
+	})) {
+		var requestDescriptionCell = document.createElement("td");
+		if(transformedItem["Request Description"].length > 50) {
+	    	requestDescriptionCell.textContent = transformedItem["Request Description"].substring(0,50)+"...";
+		} else {
+			requestDescriptionCell.textContent = transformedItem["Request Description"];
+		}
+		if(transformedItem["Request Description"].length > 250) {
+			requestDescriptionCell.setAttribute("title",transformedItem["Request Description"].substring(0,250)+"...");
+		} else {
+			requestDescriptionCell.setAttribute("title",transformedItem["Request Description"]);
+		}		
+		requestDescriptionCell.setAttribute("class","request-description-td d-none");
+		requestDescriptionCell.style.overflow = 'hidden';
+		requestDescriptionCell.rowSpan = result.filter(function (i) {
+		return i["Request Id"] == transformedItem["Request Id"] && i["Request Description"] === transformedItem["Request Description"];
+		}).length;
+		row.appendChild(requestDescriptionCell);
+		requestDescriptionAdded.push({"Request Id" : transformedItem["Request Id"] , "Request Description" : transformedItem["Request Description"]})
+	}
+	
+	if (!departmentApproverAdded.find(function(el){
+		return el["Department Approver"] == transformedItem["Department Approver"] &&  el["Request Id"] == transformedItem["Request Id"]
+	})) {
+		var departmentApproverCell = document.createElement("td");
+		departmentApproverCell.setAttribute("class","department-approver-td d-none");
+		departmentApproverCell.textContent = transformedItem["Department Approver"].substring(0,50);
+		departmentApproverCell.style.overflow = 'hidden';
+		departmentApproverCell.rowSpan = result.filter(function (i) {
+		return i["Request Id"] == transformedItem["Request Id"] && i["Department Approver"] === transformedItem["Department Approver"];
+		}).length;
+		row.appendChild(departmentApproverCell);
+		departmentApproverAdded.push({"Request Id" : transformedItem["Request Id"] , "Department Approver" : transformedItem["Department Approver"]})
+	}
+	
+	/* if (!departmentAdded.find(function(el){
+	  return el["Request Id"] == transformedItem["Request Id"] && el["Department"] == transformedItem["Department"]
+	})) {
+	    var departmentCell = document.createElement("td");
+	    departmentCell.textContent = transformedItem["Department"];
+		departmentCell.style.overflow = 'hidden';
+	    departmentCell.rowSpan = result.filter(function (i) {
+	      return  i["Request Id"] == transformedItem["Request Id"] && i["Department"] === transformedItem["Department"];
+	    }).length;
+	    row.appendChild(departmentCell);
+	    departmentAdded.push({"Request Id" : transformedItem["Request Id"] , "Department" : transformedItem["Department"]})
+	} */
+
+	if (!requestWFStageAdded.find(function(el){
+	    return el["Request Id"] == transformedItem["Request Id"] && el["Request WF Stage"] == transformedItem["Request WF Stage"]
+	})) {
+	      var requestWFStageCell = document.createElement("td");
+	      requestWFStageCell.textContent = transformedItem["Request WF Stage"];
+		  requestWFStageCell.style.overflow = 'hidden';
+	      requestWFStageCell.rowSpan = result.filter(function (i) {
+	        return i["Request Id"] == transformedItem["Request Id"] && i["Request WF Stage"] === transformedItem["Request WF Stage"];
+	      }).length;
+	      row.appendChild(requestWFStageCell);
+	      requestWFStageAdded.push({"Request Id" : transformedItem["Request Id"] , "Request WF Stage" : transformedItem["Request WF Stage"]})
+	  }
+	 
+	if (!requestWFAssigneeAdded.find(function(el){
+		return el["Request Id"] == transformedItem["Request Id"] && el["Request WF Assignee"] == transformedItem["Request WF Assignee"]
+	})) {
+		var requestWFAssigneeCell = document.createElement("td");
+		requestWFAssigneeCell.setAttribute("class","request-wf-assignee-td d-none");
+		requestWFAssigneeCell.textContent = transformedItem["Request WF Assignee"];
+		requestWFAssigneeCell.style.overflow = 'hidden';
+		requestWFAssigneeCell.rowSpan = result.filter(function (i) {
+			return i["Request Id"] == transformedItem["Request Id"] && i["Request WF Assignee"] === transformedItem["Request WF Assignee"];
+		}).length;
+		row.appendChild(requestWFAssigneeCell);
+		requestWFAssigneeAdded.push({"Request Id" : transformedItem["Request Id"] , "Request WF Assignee" : transformedItem["Request WF Assignee"]})
+	}
+
+	if (!requestIdWithPublishingWFId.find(function(el){
+	  return el["Publishing WF Id"] == transformedItem["Publishing WF Id"] &&  el["Request Id"] == transformedItem["Request Id"]
+	})) {
+	    var publishingWFIdCell = document.createElement("td");
+	    publishingWFIdCell.textContent = transformedItem["Publishing WF Id"];
+		publishingWFIdCell.style.overflow = 'hidden';
+	    publishingWFIdCell.rowSpan = result.filter(function (i) {
+	      return i["Request Id"] == transformedItem["Request Id"] && i["Publishing WF Id"] === transformedItem["Publishing WF Id"];
+	    }).length;
+	    row.appendChild(publishingWFIdCell);
+	    requestIdWithPublishingWFId.push({"Request Id" : transformedItem["Request Id"] , "Publishing WF Id" : transformedItem["Publishing WF Id"]})
+	}
+
+	if (!requestIdWithwebsitePageURLAdded.find(function(el){
+	  return el["Website/Page URL"] == transformedItem["Website/Page URL"] &&  el["Request Id"] == transformedItem["Request Id"] &&  el["Publishing WF Id"] == transformedItem["Publishing WF Id"]
+	})) {
+	    var websitePageURLCell = document.createElement("td");
+	    websitePageURLCell.textContent = transformedItem["Website/Page URL"];
+		websitePageURLCell.style.overflow = 'hidden';
+	    websitePageURLCell.rowSpan = result.filter(function (i) {
+	      return i["Website/Page URL"] === transformedItem["Website/Page URL"] && i["Request Id"] == transformedItem["Request Id"] && i["Publishing WF Id"] == transformedItem["Publishing WF Id"];
+	    }).length;
+	    row.appendChild(websitePageURLCell);
+	    requestIdWithwebsitePageURLAdded.push({"Request Id" : transformedItem["Request Id"] , "Publishing WF Id" : transformedItem["Publishing WF Id"] , "Website/Page URL" : transformedItem["Website/Page URL"]})
+	}
+	
+	if (!requestIdWithFunctionwiseSite.find(function(el){
+		return el["Functionwise Site"] == transformedItem["Functionwise Site"] &&  el["Request Id"] == transformedItem["Request Id"] &&  el["Publishing WF Id"] == transformedItem["Publishing WF Id"]
+		})) {
+			var functionwiseSiteCell = document.createElement("td");
+			functionwiseSiteCell.setAttribute("class","functionwise-site-td d-none");
+			if(transformedItem["Functionwise Site"].length > 50) {
+				functionwiseSiteCell.textContent = transformedItem["Functionwise Site"].substring(0,50)+"...";
+			} else {
+				functionwiseSiteCell.textContent = transformedItem["Functionwise Site"];
+			}
+			if(transformedItem["Functionwise Site"].length > 250) {
+				functionwiseSiteCell.setAttribute("title",transformedItem["Functionwise Site"].substring(0,250)+"...");
+			} else {
+				functionwiseSiteCell.setAttribute("title",transformedItem["Functionwise Site"]);
+			}			functionwiseSiteCell.style.overflow = 'hidden';
+			functionwiseSiteCell.rowSpan = result.filter(function (i) {
+			return i["Functionwise Site"] === transformedItem["Functionwise Site"] && i["Request Id"] == transformedItem["Request Id"] && i["Publishing WF Id"] == transformedItem["Publishing WF Id"];
+			}).length;
+			row.appendChild(functionwiseSiteCell);
+			requestIdWithFunctionwiseSite.push({"Request Id" : transformedItem["Request Id"] , "Publishing WF Id" : transformedItem["Publishing WF Id"] , "Functionwise Site" : transformedItem["Functionwise Site"]})
+		}
+
+	if (!requestIdWithSection.find(function(el){
+		  return el["Section"] == transformedItem["Section"] &&  el["Request Id"] == transformedItem["Request Id"] &&  el["Publishing WF Id"] == transformedItem["Publishing WF Id"]
+		})) {
+		    var sectionCell = document.createElement("td");
+		    sectionCell.textContent = transformedItem["Section"].substring(0,50);
+		    sectionCell.style.overflow = 'hidden';
+		    sectionCell.rowSpan = result.filter(function (i) {
+		      return i["Section"] === transformedItem["Section"] && i["Request Id"] == transformedItem["Request Id"] && i["Publishing WF Id"] == transformedItem["Publishing WF Id"];
+		    }).length;
+		    row.appendChild(sectionCell);
+		    requestIdWithSection.push({"Request Id" : transformedItem["Request Id"] , "Publishing WF Id" : transformedItem["Publishing WF Id"] , "Section" : transformedItem["Section"]})
+		}
+	
+	 if (!requestIdWithAdditionalWebsitePageURL.find(function(el){
+		return el["Additional Website/Page URL"] == transformedItem["Additional Website/Page URL"] &&  el["Request Id"] == transformedItem["Request Id"] &&  el["Publishing WF Id"] == transformedItem["Publishing WF Id"]
+		})) {
+			var additionalWebsitePageURLCell = document.createElement("td");
+			additionalWebsitePageURLCell.setAttribute("class","additional-website-page-url-td d-none");
+			if(transformedItem["Additional Website/Page URL"].length > 50) {
+				additionalWebsitePageURLCell.textContent = transformedItem["Additional Website/Page URL"].substring(0,50)+"...";
+			} else {
+				additionalWebsitePageURLCell.textContent = transformedItem["Additional Website/Page URL"];
+			}
+			if(transformedItem["Additional Website/Page URL"].length > 250) {
+				additionalWebsitePageURLCell.setAttribute("title",transformedItem["Additional Website/Page URL"].substring(0,250)+"...");
+			} else {
+				additionalWebsitePageURLCell.setAttribute("title",transformedItem["Additional Website/Page URL"]);
+			}			additionalWebsitePageURLCell.style.overflow = 'hidden';
+			additionalWebsitePageURLCell.rowSpan = result.filter(function (i) {
+			return i["Additional Website/Page URL"] === transformedItem["Additional Website/Page URL"] && i["Request Id"] == transformedItem["Request Id"] && i["Publishing WF Id"] == transformedItem["Publishing WF Id"];
+			}).length;
+			row.appendChild(additionalWebsitePageURLCell);
+			requestIdWithAdditionalWebsitePageURL.push({"Request Id" : transformedItem["Request Id"] , "Publishing WF Id" : transformedItem["Publishing WF Id"] , "Additional Website/Page URL" : transformedItem["Additional Website/Page URL"]})
+		} 
+
+	var LanguageCell = document.createElement("td");
+	
+	/* const p_p_id = urlParams.get("p_p_id");
+	let createAnchor = document.createElement('a');
+	createAnchor.setAttribute('href', previewRequestURL + "&_" + p_p_id + "_publishId=" + transformedItem["Publishing WF Id"] + "&_" + p_p_id + "_language=" + transformedItem["Language"]); */
+	LanguageCell.textContent = transformedItem["Language"];
+	LanguageCell.style.overflow = 'hidden';
+	/* LanguageCell.appendChild(createAnchor); */
+	
+	row.appendChild(LanguageCell);
+
+	var publishingWFStagesCell = document.createElement("td");
+	publishingWFStagesCell.textContent = transformedItem["Publishing WF Stages"];
+	publishingWFStagesCell.style.overflow = 'hidden';
+	row.appendChild(publishingWFStagesCell);
+
+	var actualProposedPublishingDateTimeCell = document.createElement("td");
+	actualProposedPublishingDateTimeCell.setAttribute("class","proposed-publishing-date-time-td d-none");
+	actualProposedPublishingDateTimeCell.textContent = transformedItem["Proposed Publishing Date/Time"];
+	actualProposedPublishingDateTimeCell.style.overflow = 'hidden';
+	row.appendChild(actualProposedPublishingDateTimeCell);
+
+	var actualPublishingDateTimeCell = document.createElement("td");
+	actualPublishingDateTimeCell.textContent = transformedItem["Actual Date/Time of Publishing"];
+	actualPublishingDateTimeCell.style.overflow = 'hidden';
+	row.appendChild(actualPublishingDateTimeCell);
+
+	var actualCompetionDateTimeCell = document.createElement("td");
+	actualCompetionDateTimeCell.setAttribute("class","actual-date-time-completion-td d-none");
+	actualCompetionDateTimeCell.textContent = transformedItem["Actual Date/Time of completion"];
+	actualCompetionDateTimeCell.style.overflow = 'hidden';
+	row.appendChild(actualCompetionDateTimeCell);
+
+// 	var sendReminderCell = document.createElement("td");
+// 	sendReminderCell.textContent = transformedItem["Send Reminder (checkbox)"];
+// 	row.appendChild(sendReminderCell);
+	
+    });
+}
+}
+
+function clearAllField() {
+	
+	document.getElementById("<portlet:namespace/>searchKeywords").value = '';
+	document.getElementById("<portlet:namespace/>departmentFilter").value = '';
+	// document.getElementById("<portlet:namespace/>requestDate").value = '';
+	
+	$('#languageFilter option:selected').each(function() {
+		$(this).prop('selected', false);
+	})
+	$('#languageFilter').multiselect('refresh');
+
+	$('#additionalColumnFilter option:selected').each(function() {
+		$(this).prop('selected', false);
+	})
+	$('#additionalColumnFilter').multiselect('refresh');
+	
+	$('#requestStage option:selected').each(function() {
+		$(this).prop('selected', false);
+	})
+	$('#requestStage').multiselect('refresh');
+	
+	$('#functSite').multiselect('refresh');
+	
+	$('#publishingStage option:selected').each(function() {
+		$(this).prop('selected', false);
+	})
+	$('#publishingStage').multiselect('refresh');
+	
+// 	$('#pageSeactions option:selected').each(function() {
+// 		$(this).prop('selected', false);
+// 	})
+// 	$('#pageSeactions').multiselect('refresh');
+	
+// 	document.getElementB					yId("<portlet:namespace/>publishDate").value = '';
+	
+	document.getElementById("<portlet:namespace/>applyFilter").click();
+
+
+}
+
+$(document).ready(function() {
+	
+	$('.main-section-apply #<portlet:namespace/>applyFilter').attr('disabled','disabled');
+	$('.main-section-apply #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+    $('.addtional-filers-btn #<portlet:namespace/>applyFilter').attr('disabled','disabled');
+	$('.addtional-filers-btn #<portlet:namespace/>clearFilter').attr('disabled','disabled');	
+	$('.main-section-apply a').css("pointer-events", "none");
+	$('.addtional-filers-btn a').css("pointer-events", "none");
+	
+	$("#<portlet:namespace/>publishDateStart").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		todayBtn : false,
+		todayHighlight : true,
+		endDate : new Date()
+	});
+
+	$("#<portlet:namespace/>requestDateStart").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		todayBtn : false,
+		todayHighlight : true,
+		endDate : new Date()
+	});
+
+	/* $("#<portlet:namespace/>actualDateOfCompletionStart").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		todayBtn : true,
+		todayHighlight : true,
+	}); */
+
+	$("#<portlet:namespace/>actualDateOfPublishingStart").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		todayBtn : false,
+		todayHighlight : true,
+		endDate : new Date()
+	});
+
+	$("#<portlet:namespace/>publishDateEnd").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		forceParse: false,
+		todayBtn : false,
+		todayHighlight : true,
+		endDate : new Date()
+	});
+
+	$("#<portlet:namespace/>requestDateEnd").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		forceParse: false,
+		todayBtn : false,
+		todayHighlight : true,
+		endDate : new Date()
+	});
+
+	/* $("#<portlet:namespace/>actualDateOfCompletionEnd").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		todayBtn : true,
+		todayHighlight : true,
+	}); */
+
+	$("#<portlet:namespace/>actualDateOfPublishingEnd").datepicker({
+		format : 'dd-mm-yyyy',
+		autoclose : true,
+		forceParse: false,
+		todayBtn : false,
+		todayHighlight : true,
+		endDate : new Date()
+	});
+
+	$("#<portlet:namespace/>actualDateOfPublishingStart").change(function() {
+        var scheduleDate = $("#<portlet:namespace/>actualDateOfPublishingStart").val();
+        console.log("startDate --> "+ scheduleDate);
+
+        if (scheduleDate != '') {
+            const dateArray = scheduleDate.split("-");
+
+            var newExpiryDate = new Date(dateArray[2], dateArray[1] - 1, dateArray[0]);
+            //console.log("newExpiryDate --> " + newExpiryDate.getDate());
+            /* newExpiryDate.setDate(newExpiryDate.getDate() + 1); */
+
+            $("#<portlet:namespace/>actualDateOfPublishingEnd").datepicker('destroy');
+
+            $("#<portlet:namespace/>actualDateOfPublishingEnd").datepicker({
+                format : 'dd-mm-yyyy',
+                startDate : newExpiryDate,
+        		autoclose : true,
+				forceParse: false,
+        		todayBtn : false,
+        		todayHighlight : true,
+        		endDate : new Date()
+            });
+            document.getElementById("<portlet:namespace/>actualDateOfPublishingEnd").value = '';
+        }
+    });
+	
+	/* $("#<portlet:namespace/>actualDateOfCompletionStart").change(function() {
+        var scheduleDate = $("#<portlet:namespace/>actualDateOfCompletionStart").val();
+        console.log("startDate --> "+ scheduleDate);
+
+        if (scheduleDate != '') {
+            const dateArray = scheduleDate.split("-");
+
+            var newExpiryDate = new Date(dateArray[2], dateArray[1] - 1, dateArray[0]);
+            //console.log("newExpiryDate --> " + newExpiryDate.getDate());
+            newExpiryDate.setDate(newExpiryDate.getDate() + 1);
+
+            $("#<portlet:namespace/>actualDateOfCompletionEnd").datepicker('destroy');
+
+            $("#<portlet:namespace/>actualDateOfCompletionEnd").datepicker({
+                format : 'dd-mm-yyyy',
+                startDate : newExpiryDate,
+                autoclose : true,
+        		todayBtn : true,
+        		todayHighlight : true,
+                //clearBtn: true
+            });
+        }
+    }); */
+	
+	$("#<portlet:namespace/>requestDateStart").change(function() {
+        var scheduleDate = $("#<portlet:namespace/>requestDateStart").val();
+        console.log("startDate --> "+ scheduleDate);
+
+        if (scheduleDate != '') {
+            const dateArray = scheduleDate.split("-");
+
+            var newExpiryDate = new Date(dateArray[2], dateArray[1] - 1, dateArray[0]);
+            //console.log("newExpiryDate --> " + newExpiryDate.getDate());
+            /* newExpiryDate.setDate(newExpiryDate.getDate() + 1); */
+
+            $("#<portlet:namespace/>requestDateEnd").datepicker('destroy');
+
+            $("#<portlet:namespace/>requestDateEnd").datepicker({
+                format : 'dd-mm-yyyy',
+                startDate : newExpiryDate,
+                autoclose : true,
+				forceParse: false,
+                todayBtn : false,
+        		todayHighlight : true,
+        		endDate : new Date()
+                //clearBtn: true
+            });
+            document.getElementById("<portlet:namespace/>requestDateEnd").value = '';
+        }
+    });
+	
+	$("#<portlet:namespace/>actualDateofPublishingStart").change(function() {
+        var scheduleDate = $("#<portlet:namespace/>actualDateofPublishingStart").val();
+        console.log("startDate --> "+ scheduleDate);
+
+        if (scheduleDate != '') {
+            const dateArray = scheduleDate.split("-");
+
+            var newExpiryDate = new Date(dateArray[2], dateArray[1] - 1, dateArray[0]);
+            //console.log("newExpiryDate --> " + newExpiryDate.getDate());
+            /* newExpiryDate.setDate(newExpiryDate.getDate() + 1); */
+
+            $("#<portlet:namespace/>actualDateofPublishingEnd").datepicker('destroy');
+
+            $("#<portlet:namespace/>actualDateofPublishingEnd").datepicker({
+                format : 'dd-mm-yyyy',
+                startDate : newExpiryDate,
+                autoclose : true,
+				forceParse: false,
+                todayBtn : false,
+        		todayHighlight : true,
+        		endDate : new Date()
+                //clearBtn: true
+            });
+            document.getElementById("<portlet:namespace/>actualDateofPublishingEnd").value = '';
+        }
+    });
+	
+	
+	$("#showMoreFilter").click(function(){
+		$("#showMoreFilterDiv").show();
+		$("#showLessFilter").show();
+		$("#showMoreFilter").hide();
+	});
+	
+	$("#showLessFilter").click(function(){
+	  $("#showMoreFilterDiv").hide();
+	  $("#showLessFilter").hide();
+	  $("#showMoreFilter").show();
+	});
+
+	$('#depratment').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	});
+
+	$('#languageFilter').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	});
+	
+	$('#functSite').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	});
+
+	$('#additionalColumnFilter').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select',
+		dropUp: false
+	});
+	
+	$('#requestStage').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	});
+	
+	$('#publishingStage').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	});
+
+	
+
+
+	$('#requestType').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	});
+	
+	$('#section').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	});
+	
+	/* $('#regionalOfficeRajbhasha').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	}); */
+	
+	/* $('#priorityOfRequest').multiselect({
+		numberDisplayed: 1,
+		enableFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		nonSelectedText: 'Select'
+	}); */
+	
+	const additionColumns = '<%= additionalColumnFilter %>';
+	const additionalColumn = additionColumns.split(",");
+	addHeader(additionalColumn);
+
+	$(".additional-column-filter-btn-div #<portlet:namespace/>clearFilter").on('click', function () {
+		$("#<portlet:namespace/>additionalColumnFilterHidden").val("");
+		$('#additionalColumnFilter option:selected').each(function() {
+			$(this).prop('selected', false);
+		});
+		$('#additionalColumnFilter').multiselect('refresh');
+		$('#<portlet:namespace/>applyFilter').get(0).click();
+	});
+
+	function addHeader(additionalHeaders) {
+		var thead = document.querySelector("thead");
+		if(thead !=  null) {
+		thead.innerHTML = "";
+		const headerRow = thead.insertRow();
+		var optionalHeaderTitleDataMap = {};
+			optionalHeaderTitleDataMap["Request Type"] = ".request-type-td";
+			optionalHeaderTitleDataMap["Request Description"] = ".request-description-td";
+			optionalHeaderTitleDataMap["Department Approver"] = ".department-approver-td";
+			optionalHeaderTitleDataMap["Request WF Assignee"] = ".request-wf-assignee-td";
+			optionalHeaderTitleDataMap["Functionwise Site"] = ".functionwise-site-td";
+			optionalHeaderTitleDataMap["Additional Website/Page URL"] = ".additional-website-page-url-td";
+			optionalHeaderTitleDataMap["Actual Date/Time of completion"] = ".actual-date-time-completion-td";
+			optionalHeaderTitleDataMap["Proposed Publishing Date/Time"] = ".proposed-publishing-date-time-td";
+		const upfrontHeaders = ["Request Date/Time", "Request Id", "View Request", "Request Title", "Request WF Stage", "Publishing WF Id", "Website/Page URL", "Section",  "Language", "Publishing WF Stages", "Actual Date/Time of Publishing" ];
+		const headers = ["Request Date/Time", "Request Id", "View Request", "Request Type", "Request Title", "Request Description", "Department Approver", "Request WF Stage", "Request WF Assignee", "Publishing WF Id", "Website/Page URL", "Functionwise Site", "Section", "Additional Website/Page URL", "Language", "Publishing WF Stages", "Proposed Publishing Date/Time", "Actual Date/Time of Publishing", "Actual Date/Time of completion"];
+		for (let header of headers) {
+				if(upfrontHeaders.includes(header) || additionalHeaders.includes(header)){
+					const headerCell = document.createElement("th");
+					headerCell.textContent = header;
+					headerCell.style.overflow = 'hidden';
+					headerRow.appendChild(headerCell);
+				}
+			}
+		}
+		for (let key in optionalHeaderTitleDataMap) { 
+			if(additionalHeaders.includes(key)) {
+				$(optionalHeaderTitleDataMap[key]).removeClass('d-none');
+			} else {
+				$(optionalHeaderTitleDataMap[key]).addClass('d-none');
+			}
+		}
+	}
+	
+		
+	//Language Filter multi-select
+	$('#languageFilter').on('change', function () {
+		var selectedvalues = $(this).val();
+		var commasepratedvalues = selectedvalues.join(',');
+		$("#<portlet:namespace/>languageFilterHidden").val(commasepratedvalues);
+		
+		applyAndClearAllButtonEnable();
+	});	
+		
+	//publishing stage multi-select
+	$('#requestStage').on('change', function () {
+		var selectedvalues = $(this).val();
+		var commasepratedvalues = selectedvalues.join(',');
+		$("#<portlet:namespace/>requestStageHidden").val(commasepratedvalues);
+		
+		applyAndClearAllButtonEnable();
+	});	
+
+	$('#publishingStage').on('change', function () {
+		var selectedvalues = $(this).val();
+		var commasepratedvalues = selectedvalues.join(',');
+		$("#<portlet:namespace/>publishingStageHidden").val(commasepratedvalues);
+		
+		applyAndClearAllButtonEnable();
+	});
+	
+	
+	$('#requestType').on('change', function () {
+		var selectedvalues = $(this).val();
+		var commasepratedvalues = selectedvalues.join(',');
+		$("#<portlet:namespace/>requestTypeHidden").val(commasepratedvalues);
+		
+		applyAndClearAllButtonEnable();
+	});
+	
+	$('#section').on('change', function () {
+		var selectedvalues = $(this).val();
+		var commasepratedvalues = selectedvalues.join(',');
+		$("#<portlet:namespace/>sectionHidden").val(commasepratedvalues);
+		
+		applyAndClearAllButtonEnable();
+	});
+
+	$('#functSite').on('change', function () {
+		var selectedvalues = $(this).val();
+		var commasepratedvalues = selectedvalues.join(',');
+		$("#<portlet:namespace/>functSiteHidden").val(commasepratedvalues);
+		
+		applyAndClearAllButtonEnable();
+	});
+
+	$('#additionalColumnFilter').on('change', function () {
+		var selectedvalues = $(this).val();
+		var commasepratedvalues = selectedvalues.join(',');
+		$("#<portlet:namespace/>additionalColumnFilterHidden").val(commasepratedvalues);
+		
+		if(selectedvalues.length > 0 ) {
+			$('.addtional-filers-btn #<portlet:namespace/>applyFilter').removeAttr('disabled');
+			$('.addtional-filers-btn #<portlet:namespace/>clearFilter').removeAttr('disabled');		
+			$('.addtional-filers-btn a').css("pointer-events", "unset");
+		} else {
+			$('.addtional-filers-btn #<portlet:namespace/>applyFilter').attr('disabled','disabled');
+			$('.addtional-filers-btn #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+			$('.addtional-filers-btn a').css("pointer-events", "none");
+		}
+	});
+	
+	$('#<portlet:namespace/>searchKeywords').on('keyup', function () {
+		var searchKeyword = $(this).val().trim();
+	    var departmentFilter=$("#<portlet:namespace/>departmentFilter").val();
+
+	    if(searchKeyword === '' || departmentFilter== '' ) {
+			$('#searchIconBtn').attr('disabled','disabled');
+		} else {
+			$('#searchIconBtn').removeAttr('disabled');			
+		}
+	    if(searchKeyword === '' && departmentFilter== '' ) {
+			$('.main-section-apply #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+			$('.main-section-apply a').css("pointer-events", "none");
+	    }else{
+			$('.main-section-apply #<portlet:namespace/>clearFilter').removeAttr('disabled');
+			$('.main-section-apply a').css("pointer-events", "unset");
+	    }
+	});
+	
+	$("#<portlet:namespace/>departmentFilter").on('change', function () {
+		 var searchKeyword = $('#<portlet:namespace/>searchKeywords').val().trim();
+		    var departmentFilter=$("#<portlet:namespace/>departmentFilter").val();
+		    if(searchKeyword === '' || departmentFilter== '' ) {
+		    	$('#searchIconBtn').attr('disabled','disabled');
+			
+		    } else {
+		    	$('#searchIconBtn').removeAttr('disabled');			
+		
+		    }
+		    if(searchKeyword === '' && departmentFilter== '' ) {
+				$('.main-section-apply #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+				$('.main-section-apply a').css("pointer-events", "none");
+		    }else{
+				$('.main-section-apply #<portlet:namespace/>clearFilter').removeAttr('disabled');
+				$('.main-section-apply a').css("pointer-events", "unset");
+		    }
+	});
+	
+	
+	
+	
+	checkAdditionalColumn();
+    checkSearchKeyword();
+    afterApplyAndClearAllButtonEnable();
+    
+});
+
+function exportExcelPDF(isPDF){
+	console.log("Inside Export ->");
+	var departmentFilter ="<%= departmentFilter %>";
+	var searchKeywords ="<%= searchKeywords %>";
+	var functSiteHidden ="<%= functSiteHidden %>";
+	var languageFilterHidden ="<%= languageFilterHidden %>";
+	var requestStageHidden ="<%= requestStageHidden %>";
+	var publishingStageHidden ="<%= publishingStageHidden %>";
+	var requestDateStart ="<%= requestDateStart %>";
+	var requestDateEnd ="<%= requestDateEnd %>";
+	var actualDateOfPublishingStart ="<%= actualDateOfPublishingStart %>";
+	var actualDateOfPublishingEnd ="<%= actualDateOfPublishingEnd %>";
+	var sectionHidden ="<%= sectionHidden %>";
+	var requestTypeHidden ="<%= requestTypeHidden %>";
+	var additionalColumnFilterHidden ="<%= additionalColumnFilter %>";
+	$.ajax({
+		method : "POST",
+		url : "${downloadURL}",
+		data : {
+			"<portlet:namespace />isPDF" : isPDF,
+			"<portlet:namespace />departmentFilter" : departmentFilter,
+			"<portlet:namespace />functSiteHidden" : functSiteHidden,
+     	   	"<portlet:namespace />searchKeywords" : searchKeywords,
+     	   	"<portlet:namespace />languageFilterHidden" : languageFilterHidden,
+     	   	"<portlet:namespace />requestStageHidden" : requestStageHidden,
+     	   	"<portlet:namespace />publishingStageHidden" : publishingStageHidden,
+     	   	"<portlet:namespace />requestDateStart" : requestDateStart,
+     	   	"<portlet:namespace />requestDateEnd" : requestDateEnd,
+     	   	"<portlet:namespace />actualDateOfPublishingStart" : actualDateOfPublishingStart,
+     	   	"<portlet:namespace />actualDateOfPublishingEnd" : actualDateOfPublishingEnd,
+     	   	"<portlet:namespace />sectionHidden" : sectionHidden,
+     	   	"<portlet:namespace />requestTypeHidden" : requestTypeHidden,
+     	   "<portlet:namespace />additionalColumnFilterHidden" : additionalColumnFilterHidden
+		},
+		success : function(data) {
+			var response = jQuery.parseJSON(data); 
+			console.log("data -> " + data);
+			convertByteStreamToUrl(response.excelByteArray, isPDF)
+		},
+		error : function(status) {
+			console.log("error -> " + status);
+		}
+	});
+}
+
+function applyAndClearAllButtonEnable(){	
+	var requestDateStart = $("#<portlet:namespace/>requestDateStart").val();
+    var requestDateEnd = $("#<portlet:namespace/>requestDateEnd").val();
+    var actualDateOfPublishingStart = $("#<portlet:namespace/>actualDateOfPublishingStart").val();
+    var actualDateOfPublishingEnd = $("#<portlet:namespace/>actualDateOfPublishingEnd").val();
+    
+	if((actualDateOfPublishingStart && actualDateOfPublishingEnd) || (actualDateOfPublishingStart != "" && actualDateOfPublishingEnd != "") || (requestDateStart && requestDateEnd) || (requestDateStart != "" && requestDateEnd != "") || $('#section').val().length > 0 || $('#requestType').val().length > 0 || $('#publishingStage').val().length > 0 || $('#languageFilter').val().length > 0  || $('#requestStage').val().length > 0 || $('#functSite').val().length > 0) {		
+		$('.main-section-apply #<portlet:namespace/>clearFilter').removeAttr('disabled');		
+		$('.main-section-apply #<portlet:namespace/>applyFilter').removeAttr('disabled');	
+		$('.main-section-apply a').css("pointer-events", "unset");
+	} else {		
+		$('.main-section-apply #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+		$('.main-section-apply #<portlet:namespace/>applyFilter').attr('disabled','disabled');
+		$('.main-section-apply a').css("pointer-events", "none");
+	}
+}
+
+function afterApplyAndClearAllButtonEnable(){
+	var searchKeyword = $('#<portlet:namespace/>searchKeywords').val().trim();
+	var requestDateStart = $("#<portlet:namespace/>requestDateStart").val();
+    var requestDateEnd = $("#<portlet:namespace/>requestDateEnd").val();
+    var actualDateOfPublishingStart = $("#<portlet:namespace/>actualDateOfPublishingStart").val();
+    var actualDateOfPublishingEnd = $("#<portlet:namespace/>actualDateOfPublishingEnd").val();
+    
+	if( (actualDateOfPublishingStart != "" && actualDateOfPublishingEnd != "") || (requestDateStart != "" && requestDateEnd != "") || searchKeyword !="" || $('#section').val().length > 0 || $('#requestType').val().length > 0 || $('#publishingStage').val().length > 0 || $('#languageFilter').val().length > 0  || $('#requestStage').val().length > 0 || $('#functSite').val().length > 0) {		
+		$('.main-section-apply #<portlet:namespace/>clearFilter').removeAttr('disabled');	
+		$('.main-section-apply a').css("pointer-events", "unset");
+	} else {		
+		$('.main-section-apply #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+		$('.main-section-apply a').css("pointer-events", "none");
+	}
+}
+
+function checkSearchKeyword(){
+	var searchKeyword = $('#<portlet:namespace/>searchKeywords').val().trim();
+	if(searchKeyword === '') {
+		$('.main-section-apply #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+		$('.main-section-apply a').css("pointer-events", "none");
+	} else {	
+		$('.main-section-apply #<portlet:namespace/>clearFilter').removeAttr('disabled');	
+		$('.main-section-apply a').css("pointer-events", "unset");
+	}
+}
+
+
+function checkAdditionalColumn(){
+	var selectedvalues = $('#additionalColumnFilter').val();
+	
+	if(selectedvalues.length > 0 ) {
+		$('.addtional-filers-btn #<portlet:namespace/>clearFilter').removeAttr('disabled');	
+		$('.addtional-filers-btn a').css("pointer-events", "unset");
+	} else {		
+		$('.addtional-filers-btn #<portlet:namespace/>clearFilter').attr('disabled','disabled');
+		$('.addtional-filers-btn a').css("pointer-events", "none");
+	}
+}
+
+function checkPublishingDateValidation() {
+    var ns = "<portlet:namespace/>";
+
+    var rawStart = ($("#" + ns + "actualDateOfPublishingStart").val() || "").trim();
+    var rawEnd   = ($("#" + ns + "actualDateOfPublishingEnd").val()   || "").trim();
+
+    function normalize(s) {
+        if (!s || typeof s !== 'string') return null;
+        var p = s.trim().split('-');
+        if (p.length !== 3) return null;
+        var d = p[0].trim(), m = p[1].trim(), y = p[2].trim();
+        if (!/^\d+$/.test(d) || !/^\d+$/.test(m) || !/^\d+$/.test(y)) return null;
+        if (y.length < 4) return null;
+        if (d.length < 2) d = d.padStart(2, '0');
+        if (m.length < 2) m = m.padStart(2, '0');
+        return d + '-' + m + '-' + y;
+    }
+
+    var normStart = normalize(rawStart);
+    var normEnd = normalize(rawEnd);
+
+    var startDt = parseDateDMY(normStart || rawStart);
+    var endDt = parseDateDMY(normEnd || rawEnd);
+
+    // allow equality by normalized form
+    if (!(normStart && normEnd && normStart === normEnd)) {
+        if (startDt && endDt && endDt.getTime() < startDt.getTime()) {
+            console.log('removing actualDateOfPublishingEnd (end < start)');
+            document.getElementById(ns + "actualDateOfPublishingEnd").value = '';
+            try { $("#" + ns + "actualDateOfPublishingEnd").datepicker('update', ''); } catch (e) {}
+            rawEnd = "";
+            endDt = null;
+        }
+    }
+
+    if ((rawStart && rawEnd) || (rawStart === "" && rawEnd === "")) {
+        $('.main-section-apply #' + ns + 'applyFilter').removeAttr('disabled');
+        $('.main-section-apply #' + ns + 'clearFilter').removeAttr('disabled');
+        $('.main-section-apply a').css("pointer-events", "unset");
+    } else {
+        $('.main-section-apply #' + ns + 'applyFilter').attr('disabled','disabled');
+        $('.main-section-apply #' + ns + 'clearFilter').attr('disabled','disabled');
+        $('.main-section-apply a').css("pointer-events", "none");
+    }
+}
+
+function checkRequestDateValidation() {
+    console.log("Called -- checkRequestDateValidation");
+    var ns = "<portlet:namespace/>";
+
+    var rawStart = ($("#" + ns + "requestDateStart").val() || "").trim();
+    var rawEnd   = ($("#" + ns + "requestDateEnd").val()   || "").trim();
+
+    function normalize(s) {
+        if (!s || typeof s !== 'string') return null;
+        var p = s.trim().split('-');
+        if (p.length !== 3) return null;
+        var d = p[0].trim(), m = p[1].trim(), y = p[2].trim();
+        if (!/^\d+$/.test(d) || !/^\d+$/.test(m) || !/^\d+$/.test(y)) return null;
+        if (y.length < 4) return null;
+        if (d.length < 2) d = d.padStart(2, '0');
+        if (m.length < 2) m = m.padStart(2, '0');
+        return d + '-' + m + '-' + y;
+    }
+
+    var normStart = normalize(rawStart);
+    var normEnd = normalize(rawEnd);
+
+    var startDt = parseDateDMY(normStart || rawStart);
+    var endDt = parseDateDMY(normEnd || rawEnd);
+
+    // allow equality by normalized form
+    if (!(normStart && normEnd && normStart === normEnd)) {
+        if (startDt && endDt && endDt.getTime() < startDt.getTime()) {
+            console.log('requestDateEnd is before requestDateStart -> clearing end');
+            document.getElementById(ns + "requestDateEnd").value = '';
+            try { $("#" + ns + "requestDateEnd").datepicker('update', ''); } catch (e) {}
+            rawEnd = "";
+            endDt = null;
+        }
+    }
+
+    if ((rawStart && rawEnd) || (rawStart === "" && rawEnd === "")) {
+        $('.main-section-apply #' + ns + 'applyFilter').removeAttr('disabled');
+        $('.main-section-apply #' + ns + 'clearFilter').removeAttr('disabled');
+        $('.main-section-apply a').css("pointer-events", "unset");
+    } else {
+        $('.main-section-apply #' + ns + 'applyFilter').attr('disabled','disabled');
+        $('.main-section-apply #' + ns + 'clearFilter').attr('disabled','disabled');
+        $('.main-section-apply a').css("pointer-events", "none");
+    }
+}
+
+function convertByteStreamToUrl(data, isPDF){
+	var linkSource = '';
+	if(isPDF){
+		linkSource = 'data:application/pdf;base64,';
+	}else{
+		linkSource = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,';
+	}
+		
+	const element = document.getElementById('excelView');
+	const downloadLink = document.createElement('a');
+	downloadLink.href=linkSource+data;
+	if(isPDF){
+		downloadLink.download="ContentDashboard.pdf";
+	}else{
+		downloadLink.download="ContentDashboard.xls";
+	}
+	element.appendChild(downloadLink);
+	downloadLink.click();
+
+}
+$(".admin-session-timeout #backToLogin").click(function () {
+	$('#sessionTimeoutModal').modal('hide');
+	
+	window.location.href = "<%=logoutURL%>";	
+
+	});
+</script>
+
+
+<style>
+.gotoTop-matomo::after {
+    content: attr(data-title); /* Use data-title attribute for tooltip text */
+    position: absolute;
+    top: 50%; /* Center vertically */
+    right: calc(100% + 8px); /* Position to the left with some gap for the arrow */
+    transform: translateY(-50%);
+    background-color: #d0e7ff; /* Light blue background matching the image */
+    color: #000; /* Black text */
+    padding: 8px 12px; /* Space inside the tooltip */
+    border-radius: 4px; /* Rounded corners */
+    white-space: nowrap; /* Prevent text from wrapping */
+    font-size: 14px; /* Font size */
+    z-index: 10; /* Ensure tooltip is on top */
+    opacity: 0; /* Start hidden */
+    pointer-events: none; /* Prevent tooltip from blocking interactions */
+    transition: opacity 0.3s ease-in-out; /* Smooth appearance transition */
+    visibility: hidden; /* Initially hidden */
+}
+ 
+.gotoTop-matomo:hover::after {
+    opacity: 1; /* Show tooltip on hover */
+    visibility: visible; /* Make it visible */
+}
+
+</style>
+				<portlet:renderURL var="filterDataUrl">
+					<portlet:param name="mvcRenderCommandName" value="/" />
+					<portlet:param name="filterApply" value="true" />
+				</portlet:renderURL>
+				
+				<portlet:renderURL var="searchDataUrl">
+					<portlet:param name="mvcRenderCommandName" value="/" />
+					<portlet:param name="searchApply" value="true" />
+				</portlet:renderURL>
+				
+				<portlet:renderURL var="additionalColumnFilterURL">
+					<portlet:param name="mvcRenderCommandName" value="/" />
+					<portlet:param name="additionalColumnsFilterApply" value="true" />
+				</portlet:renderURL>
+
+				<portlet:renderURL var="clearAllUrl">
+					<portlet:param name="mvcRenderCommandName" value="/" />
+					<portlet:param name="clearAll" value="true" />
+				</portlet:renderURL>
+
+				<portlet:renderURL var="clearAllAdditionalURL">
+					<portlet:param name="mvcRenderCommandName" value="/" />
+					<portlet:param name="additionalClearAll" value="true" />
+				</portlet:renderURL>
+
+<div class="doc-dashboard dashboard-module-wrapper">
+	<div class="row">
+			<div class="col-12">
+
+				<h4>Content Requests Dashboard :</h4>
+					<aui:form action="${searchDataUrl}" method="post" name="searchForm">
+					<div class="row">
+						<div class="col-sm-3">
+							<aui:select name="departmentFilter" id="departmentFilter" label="">
+								<aui:option value="" selected="<%=departmentFilter.isEmpty() %>">Search By</aui:option>
+								<aui:option value="publishingWFId"
+									selected="<%=departmentFilter.contains("publishingWFId")%>">Publishing WF Id</aui:option>
+								<aui:option value="requestId"
+									selected="<%=departmentFilter.contains("requestId") %>">Request Id</aui:option>
+								<aui:option value="requestTitle"
+									selected="<%=departmentFilter.contains("requestTitle") %>">Request Title</aui:option>
+							</aui:select>
+						</div>
+
+						<div class="col-sm-6">
+							<div class="search-bar-simple d-flex flex-wrap">
+								<div class="col-sm-11 p-0">
+									<aui:input type="text" id="searchKeywords" name="searchKeywords"
+										label="" placeholder="Search selected column"
+										value="<%=searchKeywords%>"></aui:input>
+								</div>
+								<div
+									class="input-group-inset-item input-group-inset-item-after col-sm-1 p-0">
+									<button id="searchIconBtn" class="btn btn-monospaced btn-unstyled" type="submit" <%= searchKeywords.isEmpty() ? "disabled" : ""  %>
+										aria-label="Submit"
+										style="background: #f1f2f5; border: 1px solid #e7e7ed; border-left: none; border-radius: unset;">
+										<span class="inline-item"> <svg
+												class="lexicon-icon lexicon-icon-search" role="presentation"
+												viewBox="0 0 512 512">
+											<use
+													xlink:href="/o/classic-theme/images/clay/icons.svg#search"></use>
+										</svg></span>
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					</aui:form>
+					<aui:form action="${filterDataUrl}" method="post" name="filterForm">
+					<div class="row">
+
+						<div class="col-sm-3">
+								<div class="section-div">						
+									<label>Page Section</label>
+									<select id="section"
+										name="<portlet:namespace/>section" multiple="multiple"
+										style="overflow: hide;">
+
+										<%
+											for (AssetCategory sectionAsst : sectionAsstCategories) {
+										%>
+										<%
+											if (Arrays.asList(section).contains(String.valueOf(sectionAsst.getCategoryId()))) {
+										%>
+										<option value="<%=sectionAsst.getCategoryId()%>" selected><%=sectionAsst.getName()%></option>
+										<%
+											} else {
+										%>
+										<option value="<%=sectionAsst.getCategoryId()%>"><%=sectionAsst.getName()%></option>
+										<%
+											}
+												}
+										%>
+
+
+									</select>
+									<aui:input name="sectionHidden" id="sectionHidden" type="hidden"
+										label="" value="<%= sectionHidden %>"></aui:input>
+								</div>
+							</div>
+
+
+						<div class="col-sm-3">
+							<div class="languageFilter-div">
+								<label>Language</label><br /> <select id="languageFilter"
+									name="<portlet:namespace/>languageFilter" multiple="multiple">
+									
+									<%
+										for (String lan : languages) {
+									%>
+									<%
+										if (Arrays.asList(languageFilter).contains(lan)) {
+									%>
+									<option value="<%=lan%>" selected><%=lan%></option>
+									<%
+										} else {
+									%>
+									<option value="<%=lan%>"><%=lan%></option>
+									<%
+										}
+											}
+									%>
+								</select>
+								<aui:input name="languageFilterHidden" id="languageFilterHidden"
+									type="hidden" label="" value="<%= languageFilterHidden %>"></aui:input>
+							</div>
+						</div>
+
+						<div class="col-sm-3">
+							<div class="requestStage-div">
+								<%
+									Map<String, String> requestStageMap = new LinkedHashMap<String, String>();
+										requestStageMap.put("Closed", "Closed");
+										requestStageMap.put("In Progress", "In Progress");
+										requestStageMap.put("Pending with Content Maker", "Pending with PwC Maker");
+										requestStageMap.put("Pending with Department Approver", "Pending with Department Approver");
+										requestStageMap.put("Pending with DOC (for CR validation)", "Pending with DOC (for CR validation)");
+										requestStageMap.put("Pending with Requestor", "Pending with Requestor");
+										requestStageMap.put("Resolved", "Resolved");
+								%>
+								<label>Request WF Stages</label><br /> <select id="requestStage"
+									name="<portlet:namespace/>requestStage" multiple="multiple">
+									<%
+										for (Entry<String, String> requestStageEntry : requestStageMap.entrySet()) {
+									%>
+									<%
+										if (Arrays.asList(requestStage).contains(requestStageEntry.getKey())) {
+									%>
+									<option value="<%=requestStageEntry.getKey()%>" selected><%=requestStageEntry.getValue()%></option>
+									<%
+										} else {
+									%>
+									<option value="<%=requestStageEntry.getKey()%>"><%=requestStageEntry.getValue()%></option>
+									<%
+										}
+											}
+									%>
+								</select>
+
+								<aui:input name="requestStageHidden" id="requestStageHidden"
+									type="hidden" label="" value="<%= requestStageHidden %>"></aui:input>
+							</div>
+						</div>
+
+						<div class="col-sm-3">
+							<div class="publishingStage-div">
+								<%
+									Map<String, String> publishingStageMap = new LinkedHashMap<String, String>();
+										publishingStageMap.put("Approval Pending with DOC", "Approval Pending with DOC");
+										publishingStageMap.put("Approved by DOC", "Approved by DOC");
+										publishingStageMap.put("Cancelled", "Cancelled");
+										publishingStageMap.put("Indefinite Hold", "Indefinite Hold");
+										publishingStageMap.put("Pending for assigning for Review", "Pending for assigning for Review");
+										publishingStageMap.put("Pending for assigning for Translation",
+												"Pending for assigning for Translation");
+										publishingStageMap.put("Pending with DOC Checker", "Pending with DOC Checker");
+										publishingStageMap.put("Pending with DOC Maker", "Pending with DOC Maker");
+										publishingStageMap.put("Pending with Publisher", "Pending with Publisher");
+										publishingStageMap.put("Pending with Content Checker for manual intervention",
+												"Pending with PwC Checker for manual intervention");
+										publishingStageMap.put("Pending with Content Checker", "Pending with PwC Checker");
+										publishingStageMap.put("Pending with Content Maker for manual intervention",
+												"Pending with PwC Maker for manual intervention");
+										publishingStageMap.put("Pending with Content Maker", "Pending with PwC Maker");
+										publishingStageMap.put("Published", "Published");
+										publishingStageMap.put("Review Pending", "Review Pending");
+										publishingStageMap.put("Scheduled for Publishing", "Scheduled for Publishing");
+										publishingStageMap.put("Translation Pending", "Translation Pending");
+								%>
+								<label>Publishing WF Stages</label><br /> <select
+									id="publishingStage" name="<portlet:namespace/>publishingStage"
+									multiple="multiple">
+									<%
+										for (Entry<String, String> publishingStageEntry : publishingStageMap.entrySet()) {
+									%>
+									<%
+										if (Arrays.asList(publishingStage).contains(publishingStageEntry.getKey())) {
+									%>
+									<option value="<%=publishingStageEntry.getKey()%>" selected><%=publishingStageEntry.getValue()%></option>
+									<%
+										} else {
+									%>
+									<option value="<%=publishingStageEntry.getKey()%>"><%=publishingStageEntry.getValue()%></option>
+									<%
+										}
+											}
+									%>
+								</select>
+
+								<aui:input name="publishingStageHidden" id="publishingStageHidden"
+									type="hidden" label="" value="<%= publishingStageHidden %>"></aui:input>
+							</div>
+
+						</div>
+
+
+					</div>
+					<div class="row date-time-row">
+
+						<div class="col-4">
+							<div class="date-time-box">
+								<div class="row">
+									<p class="box-title">Request Date</p>
+									<div class="col-6">
+										<aui:input name="requestDateStart" id="requestDateStart"
+											placeholder="From" label=""
+											type="text" value="<%=requestDateStart%>" onChange="checkRequestDateValidation();">
+										</aui:input>
+									</div>
+				
+									<div class="col-6">
+										<aui:input name="requestDateEnd" id="requestDateEnd"
+											placeholder="To" label=""
+											type="text" value="<%=requestDateEnd%>" onChange="checkRequestDateValidation();">
+										</aui:input>
+									</div>
+								</div>
+							</div>
+							
+						</div>
+					
+						<div class="col-4">
+							<div class="date-time-box">
+								<div class="row">
+									<p class="box-title">Actual Date of Publishing</p>	
+									<div class="col-sm-6">
+										<aui:input name="actualDateOfPublishingStart"
+											id="actualDateOfPublishingStart"
+											placeholder="From"
+											label="" type="text"
+											value="<%=actualDateOfPublishingStart%>" onChange="checkPublishingDateValidation();">
+										</aui:input>
+									</div>
+						
+									<div class="col-sm-6">
+										<aui:input name="actualDateOfPublishingEnd"
+											id="actualDateOfPublishingEnd"
+											placeholder="To"
+											label="" type="text"
+											value="<%=actualDateOfPublishingEnd%>" onChange="checkPublishingDateValidation();">
+										</aui:input>
+									</div>
+
+								</div>
+							</div>
+						</div>
+
+					</div>
+					
+
+					<div id="showMoreFilterDiv" style="display: none;">
+						<div class="row">
+
+							<%
+								String[] requestTypeArr = {"Correction", "Creation", "Updation"};
+							%>
+							<div class="col-sm-4">
+								<div class="requestType-div">
+									<label>Request Type</label><br /> <select id="requestType"
+										name="<portlet:namespace/>requestType" multiple="multiple">
+
+										<%
+											for (String requestTypeVal : requestTypeArr) {
+										%>
+										<%
+											if (Arrays.asList(requestType).contains(requestTypeVal)) {
+										%>
+										<option value="<%=requestTypeVal%>" selected><%=requestTypeVal%></option>
+										<%
+											} else {
+										%>
+										<option value="<%=requestTypeVal%>"><%=requestTypeVal%></option>
+										<%
+											}
+												}
+										%>
+									</select>
+									<aui:input name="requestTypeHidden" id="requestTypeHidden"
+										type="hidden" label="" value="<%=requestTypeHidden%>"></aui:input>
+								</div>
+							</div>
+
+							
+
+
+							<%-- <div class="col-sm-3">
+								<div class="regionalOfficeRajbhasha-div">
+									<label>Regional Office / Rajbhasha </label><br /> <select
+										id="regionalOfficeRajbhasha"
+										name="<portlet:namespace/>regionalOfficeRajbhasha"
+										multiple="multiple">
+										<option value="Rajbhasha">Rajbhasha</option>
+
+									</select>
+									<aui:input name="regionalOfficeRajbhashaHidden"
+										id="regionalOfficeRajbhashaHidden" type="hidden" label=""
+										value=""></aui:input>
+								</div>
+							</div> --%>
+
+							<%-- <div class="col-sm-3">
+								<div class="priorityOfRequest-div">
+									<label>Priority of Request</label><br /> <select
+										id="priorityOfRequest"
+										name="<portlet:namespace/>priorityOfRequest" multiple="multiple"
+										style="overflow: hide;">
+										<option value="Normal">Normal</option>
+										<option value="Urgent">Urgent</option>
+									</select>
+									<aui:input name="priorityOfRequestHidden"
+										id="priorityOfRequestHidden" type="hidden" label="" value=""></aui:input>
+								</div>
+							</div> --%>
+
+
+
+			</div>
+</div>
+
+	
+
+	<div class="row no-gutters justify-content-end showMoreRow">
+	<div class="col">
+		<p id="showMoreFilter" class="showLessTxt">View
+			More</p>
+	</div>
+	</div>
+	<div class="row no-gutters justify-content-end showMoreRow">
+	    <div class="col">
+	        <p id="showLessFilter" class="showLessTxt" style="display:none;">View Less</p>
+	    </div>
+	</div>
+
+	<div class="row no-gutters justify-content-end">
+			<div class="buttons-row-1 main-section-apply">
+				<aui:button primary="true" type="submit" name="Apply" value="Apply"  id="applyFilter" />
+
+
+			<a href="${clearAllUrl}"><aui:button primary="true"
+				type="button" name="Clear All" value="Clear All"
+					id="clearFilter"></aui:button></a>
+			</div>	
+
+	</div>
+				</aui:form>
+
+	<div class="row no-gutters">
+		<div class="col-12">
+			<aui:form action="${additionalColumnFilterURL}" method="post" name="additionalColumnFilterForm">
+			<div class="additional-column-row">		<%
+				Map<String, String> additionalColumnsMap = new LinkedHashMap<String, String>(); 
+					additionalColumnsMap.put("Actual Date/Time of completion", "Actual Date/Time of completion");
+					additionalColumnsMap.put("Additional Website/Page URL", "Additional Website/Page URL");
+					additionalColumnsMap.put("Department Approver", "Department Approver");
+					additionalColumnsMap.put("Functionwise Site", "Functionwise Site");
+					additionalColumnsMap.put("Proposed Publishing Date/Time", "Proposed Publishing Date/Time");
+					additionalColumnsMap.put("Request Description", "Request Description");
+					additionalColumnsMap.put("Request Type", "Request Type");
+					additionalColumnsMap.put("Request WF Assignee", "Request WF Assignee");
+				%>
+					<div class="additional-column-filter-wrapper">
+						<div class="addtional-filers">
+							<label>Additional Columns: </label>
+						
+							<select id="additionalColumnFilter"
+								name="<portlet:namespace/>additionalColumnFilter"
+								multiple="multiple">
+								<% for(Entry<String,String> additionalColumnsEntry : additionalColumnsMap.entrySet()) { %>
+									<%if (Arrays.asList(additionalColumn).contains(additionalColumnsEntry.getKey())) { %>
+										<option value="<%=additionalColumnsEntry.getKey() %>" selected><%=additionalColumnsEntry.getValue() %></option>
+									<%} else { %>
+										<option value="<%=additionalColumnsEntry.getKey() %>" ><%=additionalColumnsEntry.getValue() %></option>
+								<%} }%>
+								<!-- <option value="Actual Date/Time of completion" >Actual Date/Time of completion</option> -->
+							</select>
+						</div>		
+						<div class="addtional-filers-btn">
+							<aui:input name="additionalColumnFilterHidden"
+								id="additionalColumnFilterHidden" type="hidden" label="" value="<%=additionalColumnFilter %>"></aui:input>
+
+								<aui:button primary="true" name="Apply" type="submit" value="Apply"
+							id="applyFilter" />
+
+							<a href="${clearAllAdditionalURL}"> <aui:button primary="true"
+								type="button" name="Clear All" value="Clear All"
+									id="clearFilter"></aui:button></a>	
+
+						</div>
+
+					</div>
+				
+
+					<div class="additional-column-download-pdf-btn">
+						<aui:button primary="true"
+						type="button" name="downloadExcel" onclick="exportExcelPDF(false)"
+						value="Download Excel" 
+						id="downloadExcel"></aui:button>
+					
+					<aui:button primary="true"
+						type="button" name="downloadPdf" onclick="exportExcelPDF(true)" value="Download PDF"
+							id="downloadPdf"></aui:button>
+
+					</div>
+
+					</div>
+				</aui:form>		
+		</div>
+
+	</div>
+
+	<div class="row no-gutters">
+
+			<%
+				if (contentRequestHistoryDataList != null && contentRequestHistoryDataList.size() > 0) {
+			%>
+		<div class="col-sm-12" style="overflow-x: auto; overflow-y: hidden;">
+
+			<liferay-portlet:renderURL varImpl="filterMVCRenderCommandURL">
+				<portlet:param name="mvcRenderCommandName" value="/" />
+			</liferay-portlet:renderURL>
+
+			<div id="table-container">
+
+<div id="table_arrow_wrap"></div>
+			<table border="1" id="requestorDashBoard" style="table-layout: fixed;">
+				<liferay-ui:search-container
+					total="<%=contentRequestHistoryDataList.size()%>"
+					var="searchContainer" delta="10" deltaConfigurable="true"
+					emptyResultsMessage="Oops. There Are No Content Requests To Display here."
+					iteratorURL="<%=filterMVCRenderCommandURL%>">
+					<thead>
+
+					</thead>
+
+					<liferay-ui:search-container-results
+						results="<%=ListUtil.subList(contentRequestHistoryDataList, searchContainer.getStart(),
+									searchContainer.getEnd())%>" />
+
+					<liferay-ui:search-container-row
+						className="com.rbi.requestor.widget.service.builder.custom.constants.ContentRequestHistoryData"
+						modelVar="contentRequestHistory" keyProperty="requestHistoryId">
+
+						<portlet:renderURL var="previewRequestURL">
+							<portlet:param name="requestHistoryId"
+								value="${contentRequestHistory.requestId}" />
+							<portlet:param name="mvcRenderCommandName" value="/show/timeline" />
+						</portlet:renderURL>
+
+						<portlet:renderURL var="viewReuestFormURL">
+							<portlet:param name="requestHistoryId"
+								value="${contentRequestHistory.requestId}" />
+							<portlet:param name="mvcRenderCommandName" value="/show/request" />
+						</portlet:renderURL>
+
+						<tbody id="tbodyId">
+							<script type="text/javascript">
+							createRow(<%=jsonUtil.writeJson(contentRequestHistory)%>,<%=jsonUtil.writeJson(previewRequestURL)%>, <%=jsonUtil.writeJson(viewReuestFormURL)%>);
+							</script>
+						</tbody>
+
+					</liferay-ui:search-container-row>
+					<liferay-ui:search-iterator markupView="lexicon" />
+
+				</liferay-ui:search-container>
+				
+			</table>
+			</div>
+		</div>
+		</div>
+
+	</div>
+
+	<%
+		} else {
+	%>
+		<div class="col-sm-12">
+			<div class="content-not-found-error">
+				<h3>There are no content requests available to display.</h3>
+			</div>
+		</div>
+
+	<%
+		}
+	%>
+
+	<div id="excelView">
+		<!-- Please dont delete this div -->
+	</div>
+</div>
+
+<script>
+	$(window).resize(function () {
+	
+	if ($('#table-container table').width() > $('#table-container').width() && $('.table-arrow').length < 1 && $('.scrollable_table') < 1) {
+	
+		$('#table_arrow_wrap').prepend('<div class="table-prev table-arrow disbaled"></div>').append('<div class="table-next table-arrow arrow" style=""></div>');
+	
+	   console.log('test resize');
+	
+	}
+	
+	
+	
+	$(".table-next").on("click", function () {
+	
+		$(".scrollable_table").animate({ scrollLeft: '+=200' }, 200);
+	
+		$(".cloned-table-wrap").animate({ scrollLeft: '+=200' }, 200);
+	
+		//console.log('next')          
+	
+	});
+	
+	$(".table-prev").on("click", function () {
+	
+		$(".scrollable_table").animate({ scrollLeft: '-=200' }, 200);
+	
+		$(".cloned-table-wrap").animate({ scrollLeft: '-=200' }, 200);
+	
+		//console.log('prev')
+	
+	});
+	
+	console.log('test resize');
+	
+	});
+	var clonedThgt;
+	$(document).ready(function(){
+	
+	if ($('#table-container table').width() > $('#table-container').width() && $('.table-arrow').length < 1) {
+	
+		$('#table_arrow_wrap').prepend('<div class="table-prev table-arrow disbaled"></div>').append('<div class="table-next table-arrow arrow" style=""></div>');
+	
+		console.log('test ready');
+	
+	}
+	
+	
+	
+	$('#table-container table').wrap('<div class="scrollable_table"></div>');
+	
+	
+	
+	$(".table-next").on("click", function () {
+	
+		$(".scrollable_table").animate({ scrollLeft: '+=200' }, 200);
+	
+		$(".cloned-table-wrap").animate({ scrollLeft: '+=200' }, 200);
+	
+		//console.log('next')          
+	
+	});
+	
+	$(".table-prev").on("click", function () {
+	
+		$(".scrollable_table").animate({ scrollLeft: '-=200' }, 200);
+	
+		$(".cloned-table-wrap").animate({ scrollLeft: '-=200' }, 200);
+	
+		//console.log('prev')
+	
+	});
+	clonedThgt = $(".scrollable_table thead").outerHeight();
+	var scrollVal;
+		$(".scrollable_table").on('scroll', function () {
+			scrollVal = $(this).scrollLeft();
+		
+			if ($(".scrollable_table").scrollLeft() + $(".scrollable_table").innerWidth() >= $(".scrollable_table")[0].scrollWidth - 20) {
+			$(".table-next").addClass('disbaled');
+			} else {
+			$(".table-next").removeClass('disbaled');
+			}
+		
+			if (scrollVal == 0) {
+			$(".table-prev").addClass('disbaled');
+			} else {
+			$(".table-prev").removeClass('disbaled');
+			}
+		});
+		$('.scrollable_table').scroll(function () {
+			$('.cloned-table-wrap').scrollLeft($(this).scrollLeft());
+		});
+	
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	$(document).ready(function(){
+		clone_table = $("#cloned-table");
+		clone_table = $("#requestorDashBoard").clone();
+		clone_table.attr('id', 'cloned-table');
+		clone_table.width($("#requestorDashBoard").width());
+		tableWidth = $("#table-container").width();
+		$("#table-container").append(clone_table);
+		$("#cloned-table").wrap('<div class="cloned-table-wrap"></div>');
+		$(".cloned-table-wrap").css({
+			width: tableWidth + 'px'
+		});
+		
+		$(".cloned-table-wrap").css({
+			visibility: 'hidden'
+		});
+		$(".cloned-table-wrap").css({
+			height: clonedThgt + 'px'
+		});
+		$("#cloned-table").css({
+			visibility: 'hidden'
+		});
+	})
+	
+	
+			function moveScroll() {
+	
+				var scroll = $(window).scrollTop() + 40;
+	
+				var anchor_top = $("#requestorDashBoard").offset().top;
+	
+				var tableWidth = $("#table-container").width();
+	
+				var anchor_bottom = $(".pagination-bar").offset().top;
+	
+				if (scroll > anchor_top && scroll < anchor_bottom) {
+					$("#cloned-table thead").css({
+						visibility: 'visible'
+					});
+					$(".cloned-table-wrap").css({
+						visibility: 'visible'
+					});
+				} else {
+					$("#cloned-table thead").css({
+						visibility: 'hidden'
+					});
+					$(".cloned-table-wrap").css({
+						visibility: 'hidden'
+					});
+	
+				}
+	
+			}
+	
+	
+	
+			$(window).scroll(moveScroll);
+</script>
+
+
+<script>
+/* helper: parse dd-mm-yyyy to Date (returns null if not full/valid) */
+function parseDateDMY(s) {
+    if (!s || typeof s !== 'string') return null;
+    var p = s.trim().split('-');
+    if (p.length !== 3) return null;
+    var dStr = p[0].trim(), mStr = p[1].trim(), yStr = p[2].trim();
+    if (!/^\d+$/.test(dStr) || !/^\d+$/.test(mStr) || !/^\d+$/.test(yStr)) return null;
+    // require full 4-digit year to avoid 1900+ behavior for 0-99
+    if (yStr.length !== 4) return null;
+    var d = parseInt(dStr, 10);
+    var m = parseInt(mStr, 10) - 1;
+    var y = parseInt(yStr, 10);
+    if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+    // Optional: validate ranges for month/day here
+    return new Date(y, m, d);
+}
+
+/* helper: normalize dd-mm-yyyy style strings to zero-padded form "dd-mm-yyyy" if possible */
+// helper: normalize dd-mm-yyyy strings to "dd-mm-yyyy" or null if incomplete/invalid
+function normalizeDMYString(s) {
+    if (!s || typeof s !== 'string') return null;
+    var p = s.trim().split('-');
+    if (p.length !== 3) return null;
+    var d = p[0].trim(), m = p[1].trim(), y = p[2].trim();
+    if (!/^\d+$/.test(d) || !/^\d+$/.test(m) || !/^\d+$/.test(y)) return null;
+    if (y.length !== 4) return null;
+    if (d.length < 2) d = d.padStart(2, '0');
+    if (m.length < 2) m = m.padStart(2, '0');
+    return d + '-' + m + '-' + y;
+}
+
+function safeInitDatepicker($el, startDate) {
+    try { $el.datepicker('remove'); } catch (e) {}
+    $el.datepicker({
+		format: 'dd-mm-yyyy',
+        autoclose: true,
+        forceParse: false,
+        todayHighlight: true,
+        startDate: startDate || null
+    });
+}
+$(document).ready(function () {
+    var ns = "<portlet:namespace/>";
+
+    var $reqStart = $("#" + ns + "requestDateStart");
+    var $reqEnd   = $("#" + ns + "requestDateEnd");
+    var $pubStart = $("#" + ns + "actualDateOfPublishingStart");
+    var $pubEnd   = $("#" + ns + "actualDateOfPublishingEnd");
+
+    // re-init pickers safely (if you already call init functions, ensure they call safeInitDatepicker instead)
+    if ($reqEnd.length) safeInitDatepicker($reqEnd, parseDateDMY($reqStart.val()));
+    if ($pubEnd.length) safeInitDatepicker($pubEnd, parseDateDMY($pubStart.val()));
+
+    // helper: clear end only when a fully parsed end date is strictly < start date
+    function clearIfEndBeforeStart($start, $end) {
+        var rawStart = ($start.val() || "").trim();
+        var rawEnd = ($end.val() || "").trim();
+
+        var normStart = normalizeDMYString(rawStart);
+        var normEnd = normalizeDMYString(rawEnd);
+
+        // allow equality by normalized form
+        if (normStart && normEnd && normStart === normEnd) return;
+
+        var s = parseDateDMY(normStart || rawStart);
+        var e = parseDateDMY(normEnd || rawEnd);
+
+        if (s && e && e.getTime() < s.getTime()) {
+            console.log($end.attr('id') + ' is before ' + $start.attr('id') + ' -> clearing end');
+            $end.val('');
+            try { $end.datepicker('update', ''); } catch (err) {}
+        }
+    }
+
+    // helper: only call the check* function on blur or when end is normalized (complete)
+    function maybeRunCheck($end, checkFn, event) {
+        var rawEnd = ($end.val() || "").trim();
+        var normEnd = normalizeDMYString(rawEnd);
+        if ((event && (event.type === 'blur' || event.type === 'changeDate')) || normEnd) {
+            if (typeof checkFn === 'function') checkFn();
+        }
+    }
+
+    // DETACH any previous aggressive handlers (safe even if not present)
+    $reqEnd.off('.deferCheck change').off('input.debounce');
+    $pubEnd.off('.deferCheck change').off('input.debounce');
+
+    // REQUEST date handlers: run validation on blur / Enter / datepicker change
+    $reqEnd.on('blur.deferCheck', function (e) {
+        clearIfEndBeforeStart($reqStart, $reqEnd);
+        maybeRunCheck($reqEnd, checkRequestDateValidation, e);
+    }).on('keydown.deferCheck', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); $(this).blur(); }
+    }).on('changeDate.deferCheck', function (e) {
+        clearIfEndBeforeStart($reqStart, $reqEnd);
+        maybeRunCheck($reqEnd, checkRequestDateValidation, { type: 'changeDate' });
+    });
+
+    // PUBLISHING date handlers: same behavior
+    $pubEnd.on('blur.deferCheck', function (e) {
+        clearIfEndBeforeStart($pubStart, $pubEnd);
+        maybeRunCheck($pubEnd, checkPublishingDateValidation, e);
+    }).on('keydown.deferCheck', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); $(this).blur(); }
+    }).on('changeDate.deferCheck', function (e) {
+        clearIfEndBeforeStart($pubStart, $pubEnd);
+        maybeRunCheck($pubEnd, checkPublishingDateValidation, { type: 'changeDate' });
+    });
+
+    // when start changes, update picker's min date and re-validate as blur (finished action)
+    $reqStart.off('.deferCheck').on('blur.deferCheck change.deferCheck', function () {
+        var newS = parseDateDMY(($reqStart.val() || "").trim()) || null;
+        try { $reqEnd.datepicker('setStartDate', newS); } catch (err) {}
+        clearIfEndBeforeStart($reqStart, $reqEnd);
+        maybeRunCheck($reqEnd, checkRequestDateValidation, { type: 'blur' });
+    });
+
+    $pubStart.off('.deferCheck').on('blur.deferCheck change.deferCheck', function () {
+        var newS = parseDateDMY(($pubStart.val() || "").trim()) || null;
+        try { $pubEnd.datepicker('setStartDate', newS); } catch (err) {}
+        clearIfEndBeforeStart($pubStart, $pubEnd);
+        maybeRunCheck($pubEnd, checkPublishingDateValidation, { type: 'blur' });
+    });
+
+    // initial run on load (treat as blur)
+    clearIfEndBeforeStart($reqStart, $reqEnd);
+    maybeRunCheck($reqEnd, checkRequestDateValidation, { type: 'blur' });
+
+    clearIfEndBeforeStart($pubStart, $pubEnd);
+    maybeRunCheck($pubEnd, checkPublishingDateValidation, { type: 'blur' });
+});
+
+(function(){
+  // auto-detect namespace by finding any of the end elements
+  var endSelector = "[id$='requestDateEnd'],[id$='publishDateEnd'],[id$='actualDateOfPublishingEnd'],[id$='actualDateofPublishingEnd']";
+  var $example = $(endSelector).first();
+  if (!$example.length) {
+    console.warn("End date inputs not found - ensure selector matches your ids.");
+    return;
+  }
+  // Try to infer portlet namespace from first end id (remove suffix)
+  var sampleId = $example.attr('id');
+  var ns = sampleId.replace(/(requestDateEnd|publishDateEnd|actualDateOfPublishingEnd|actualDateofPublishingEnd)$/, '');
+
+  function safeInitEndPicker(idSuffix, startSelector, checkFn) {
+    var $end = $("#" + ns + idSuffix);
+    var $start = $("#" + ns + startSelector);
+
+    if (!$end.length) return;
+
+    // remove previous instance & handlers safely
+    try { $end.datepicker('remove'); } catch (e) {}
+    $end.off('.fixedEndHandlers');
+
+    // reinit with forceParse:false to avoid forcing today on invalid input
+    $end.datepicker({
+      format: 'dd-mm-yyyy',
+      autoclose: true,
+      forceParse: false,    // <-- critical
+      todayBtn: false,
+      todayHighlight: true,
+      endDate: new Date(),
+      startDate: ( $start.length ? (function(){ var d = parseDateDMY($start.val()); return d || null; })() : null)
+    });
+
+    // Prevent the default behavior on Enter and blur instead so validation runs first
+    $end.on('keydown.fixedEndHandlers', function(e){
+      if (e.key === 'Enter') {
+        e.preventDefault();   // stop datepicker or form from forcing a value
+        $(this).blur();       // trigger blur handler below (validation)
+      }
+    });
+
+    // When user picks a date from picker -> run validation immediately
+    $end.on('changeDate.fixedEndHandlers', function(e){
+      if (typeof checkFn === 'function') {
+        checkFn();
+      }
+    });
+
+    // On blur (user finished typing) -> run validation
+    $end.on('blur.fixedEndHandlers', function(e){
+      if (typeof checkFn === 'function') {
+        checkFn();
+      }
+    });
+
+    // When start changes update startDate on end picker
+    if ($start.length) {
+      $start.off('.fixedEndHandlers').on('blur.fixedEndHandlers change.fixedEndHandlers', function(){
+        var newS = parseDateDMY(($start.val()||'').trim()) || null;
+        try { $end.datepicker('setStartDate', newS); } catch (err) {}
+        // re-validate end as blur (finished action)
+        if (typeof checkFn === 'function') checkFn();
+      });
+    }
+  }
+
+  // call for all end pickers (use correct start ids and check function names)
+  safeInitEndPicker('requestDateEnd', 'requestDateStart', checkRequestDateValidation);
+  safeInitEndPicker('publishDateEnd', 'publishDateStart', null); // no check function shown in file; leave null
+  // There are two variants of actualDateOfPublishingEnd in your file (note the small typo actualDateofPublishingEnd elsewhere),
+  safeInitEndPicker('actualDateOfPublishingEnd', 'actualDateOfPublishingStart', checkPublishingDateValidation);
+  safeInitEndPicker('actualDateofPublishingEnd', 'actualDateofPublishingStart', checkPublishingDateValidation);
+
+  console.log("End pickers reinitialized with forceParse:false and Enter/blur handlers attached (ns: " + ns + ")");
+})();
+
+// ---------- FINAL initEndPickerWithStart() ----------
+function initEndPickerWithStart() {
+    var ns = "<portlet:namespace/>";
+
+    var $start = $("#" + ns + "requestDateStart");
+    var $end   = $("#" + ns + "requestDateEnd");
+
+    var startDt = parseDateDMY($start.val()) || null;
+
+    try { $end.datepicker('remove'); } catch (e) {}
+
+    $end.datepicker({
+		format: 'dd-mm-yyyy',
+        autoclose: true,
+        forceParse: false,
+        todayHighlight: true,
+        startDate: startDt,
+		endDate: new Date()
+    });
+
+    // core validator: only clears when we have a fully-parsed date and it's < start
+    function clearIfEndBeforeStart() {
+        var rawStart = ($start.val() || "").trim();
+        var rawEnd   = ($end.val()   || "").trim();
+
+        var normStart = normalizeDMYString(rawStart);
+        var normEnd   = normalizeDMYString(rawEnd);
+
+        // allow equality by normalized form
+        if (normStart && normEnd && normStart === normEnd) return;
+
+        // parse both if possible
+        var s = parseDateDMY(rawStart);
+        var e = parseDateDMY(rawEnd);
+
+        if (s && e && e.getTime() < s.getTime()) {
+            console.log('requestDateEnd is before requestDateStart -> clearing end');
+            $end.val('');
+            try { $end.datepicker('update', ''); } catch (err) {}
+        }
+    }
+
+    // only call checkRequestDateValidation when we have a normalized full end OR on blur/changeDate
+    function maybeRunCheck(event) {
+        var rawEnd = ($end.val() || "").trim();
+        var normEnd = normalizeDMYString(rawEnd);
+
+        if ((event && (event.type === 'blur' || event.type === 'changeDate')) || normEnd) {
+            if (typeof checkRequestDateValidation === 'function') checkRequestDateValidation();
+        }
+    }
+
+    // attach events:
+    // - allow typing freely (no validation on input)
+    $end.off('.reqEnd');
+
+    // validate/clear on blur (user finished typing)
+    $end.on('blur.reqEnd', function (e) {
+        clearIfEndBeforeStart();
+        maybeRunCheck(e); // immediate on blur
+    });
+
+    // datepicker-specific event: when user picks a date from calendar
+    $end.on('changeDate.reqEnd', function (e) {
+        // update/validate immediately when datepicker sets the value
+        clearIfEndBeforeStart();
+        maybeRunCheck({ type: 'changeDate' });
+    });
+
+    // pressing Enter triggers blur so blur handler will run
+    $end.on('keydown.reqEnd', function (e) {
+        if (e.key === 'Enter') $(this).blur();
+    });
+
+    // when start changes, update the allowed startDate and re-validate as blur (treat as finished)
+    $start.off('.reqEnd').on('blur.reqEnd change.reqEnd', function () {
+        var newStart = parseDateDMY(($start.val() || "").trim()) || null;
+        try { $end.datepicker('setStartDate', newStart); } catch (err) {}
+        // treat this as a finished action - re-validate and run check
+        clearIfEndBeforeStart();
+        maybeRunCheck({ type: 'blur' });
+    });
+
+    // initial validation: treat as blur so page-load state is corrected
+    clearIfEndBeforeStart();
+    maybeRunCheck({ type: 'blur' });
+}
+
+
+// ---------- FINAL initPublishEndPickerWithStart() ----------
+// ---------- PUBLISHING datepicker init (mirror of request-date logic) ----------
+function initPublishEndPickerWithStart() {
+    var ns = "<portlet:namespace/>";
+
+    var $start = $("#" + ns + "actualDateOfPublishingStart");
+    var $end   = $("#" + ns + "actualDateOfPublishingEnd");
+
+    var startDt = parseDateDMY($start.val()) || null;
+
+    try { $end.datepicker('remove'); } catch (e) {}
+
+    $end.datepicker({
+		format: 'dd-mm-yyyy',
+        autoclose: true,
+        forceParse: false,
+        todayHighlight: true,
+        startDate: startDt,
+		endDate: new Date()
+    });
+
+    // clear only when end is a fully parsed date AND end < start
+    function clearIfEndBeforeStart() {
+        var rawStart = ($start.val() || "").trim();
+        var rawEnd   = ($end.val()   || "").trim();
+
+        var normStart = normalizeDMYString(rawStart);
+        var normEnd   = normalizeDMYString(rawEnd);
+
+        // allow equality by normalized form
+        if (normStart && normEnd && normStart === normEnd) return;
+
+        var s = parseDateDMY(rawStart);
+        var e = parseDateDMY(rawEnd);
+
+        if (s && e && e.getTime() < s.getTime()) {
+            console.log('actualDateOfPublishingEnd is before actualDateOfPublishingStart -> clearing end');
+            $end.val('');
+            try { $end.datepicker('update', ''); } catch (err) {}
+        }
+    }
+
+    // only call checkPublishingDateValidation when End is normalized OR on blur/changeDate
+    function maybeRunCheck(event) {
+        var rawEnd = ($end.val() || "").trim();
+        var normEnd = normalizeDMYString(rawEnd);
+
+        if ((event && (event.type === 'blur' || event.type === 'changeDate')) || normEnd) {
+            if (typeof checkPublishingDateValidation === 'function') checkPublishingDateValidation();
+        }
+    }
+
+    // Attach events:
+    $end.off('.pubEnd');
+
+    // validate/clear on blur
+    $end.on('blur.pubEnd', function (e) {
+        clearIfEndBeforeStart();
+        maybeRunCheck(e); // immediate check on blur
+    });
+
+    // when user picks from calendar (bootstrap datepicker) - changeDate event
+    $end.on('changeDate.pubEnd', function (e) {
+        clearIfEndBeforeStart();
+        maybeRunCheck({ type: 'changeDate' });
+    });
+
+    // Enter triggers blur
+    $end.on('keydown.pubEnd', function (e) {
+        if (e.key === 'Enter') $(this).blur();
+    });
+
+    // when start changes, update allowed startDate and revalidate
+    $start.off('.pubEnd').on('blur.pubEnd change.pubEnd', function () {
+        var newStart = parseDateDMY(($start.val() || "").trim()) || null;
+        try { $end.datepicker('setStartDate', newStart); } catch (err) {}
+        clearIfEndBeforeStart();
+        maybeRunCheck({ type: 'blur' });
+    });
+
+    // initial validation on load (treat as blur)
+    clearIfEndBeforeStart();
+    maybeRunCheck({ type: 'blur' });
+}
+
+
+
+/* call once on page load (ensures correct min after Apply + reload) */
+$(function(){
+    initEndPickerWithStart();
+	initPublishEndPickerWithStart();
+});
+
+/* also call before Apply submits (covers AJAX or no-reload flows) */
+$(document).on('click', "#<portlet:namespace/>applyFilter", function(){
+    initEndPickerWithStart();
+	initPublishEndPickerWithStart();
+    // allow original submit behavior to proceed after reinit
+});
+</script>
+
